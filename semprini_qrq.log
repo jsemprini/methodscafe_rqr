@@ -1,0 +1,1262 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\jsemprini\OneDrive - University of Iowa\4-Misc Projects\semprini_qrq.log
+  log type:  text
+ opened on:  22 Jun 2022, 14:01:06
+
+. 
+. gen expansion=post*medicaid
+(12,628 missing values generated)
+
+. 
+. global controls x_fpl100 x_ue x_bachdegree x_snap
+
+.  
+. estimates clear
+
+. 
+. ****requires: rqr schemepack****
+. 
+. gen code=geoid
+
+. destring(code), force replace 
+code: all characters numeric; replaced as double
+
+. egen id=group(code)
+
+. 
+. 
+. ***OLS results****
+. 
+. eststo: reg ya1864_uninsured 1.expansion  , vce(cluster statefips) 
+
+Linear regression                               Number of obs     =    132,063
+                                                F(1, 45)          =      42.08
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.1016
+                                                Root MSE          =     .11736
+
+                             (Std. err. adjusted for 46 clusters in statefips)
+------------------------------------------------------------------------------
+             |               Robust
+ya1864_uni~d | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ 1.expansion |  -.0914715   .0141014    -6.49   0.000     -.119873   -.0630699
+       _cons |   .1908816   .0146586    13.02   0.000     .1613576    .2204056
+------------------------------------------------------------------------------
+(est1 stored)
+
+. eststo: areg ya1864_uninsured 1.expansion i.post, vce(cluster statefips) absorb(id)
+
+Linear regression, absorbing indicators            Number of obs     = 132,063
+Absorbed variable: id                              No. of categories =  66,088
+                                                   F(2, 45)          =   72.90
+                                                   Prob > F          =  0.0000
+                                                   R-squared         =  0.8879
+                                                   Adj R-squared     =  0.7756
+                                                   Root MSE          =  0.0587
+
+                             (Std. err. adjusted for 46 clusters in statefips)
+------------------------------------------------------------------------------
+             |               Robust
+ya1864_uni~d | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ 1.expansion |  -.0373157   .0156439    -2.39   0.021    -.0688242   -.0058071
+      1.post |   -.063517    .006496    -9.78   0.000    -.0766006   -.0504334
+       _cons |   .2092421   .0038841    53.87   0.000     .2014192    .2170649
+------------------------------------------------------------------------------
+(est2 stored)
+
+. eststo: areg ya1864_uninsured 1.expansion i.post [fw=ta1864], vce(cluster statefips) absorb(id)
+
+Linear regression, absorbing indicators          Number of obs     = 323855267
+Absorbed variable: id                            No. of categories =    66,088
+                                                 F(2, 45)          =    105.05
+                                                 Prob > F          =    0.0000
+                                                 R-squared         =    0.9005
+                                                 Adj R-squared     =    0.9005
+                                                 Root MSE          =    0.0390
+
+                             (Std. err. adjusted for 46 clusters in statefips)
+------------------------------------------------------------------------------
+             |               Robust
+ya1864_uni~d | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ 1.expansion |  -.0356936   .0128748    -2.77   0.008    -.0616248   -.0097623
+      1.post |  -.0641348   .0054865   -11.69   0.000    -.0751852   -.0530844
+       _cons |   .2092199   .0030936    67.63   0.000     .2029891    .2154507
+------------------------------------------------------------------------------
+(est3 stored)
+
+. eststo: areg ya1864_uninsured 1.expansion i.post c.($controls) [fw=ta1864], vce(cluster statefips) absorb(id)
+
+Linear regression, absorbing indicators          Number of obs     = 323626541
+Absorbed variable: id                            No. of categories =    65,978
+                                                 F(6, 45)          =    153.43
+                                                 Prob > F          =    0.0000
+                                                 R-squared         =    0.9099
+                                                 Adj R-squared     =    0.9099
+                                                 Root MSE          =    0.0371
+
+                             (Std. err. adjusted for 46 clusters in statefips)
+------------------------------------------------------------------------------
+             |               Robust
+ya1864_uni~d | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ 1.expansion |  -.0333434   .0110287    -3.02   0.004    -.0555563   -.0111304
+      1.post |  -.0430966   .0040684   -10.59   0.000    -.0512909   -.0349024
+    x_fpl100 |   .1740001   .0339136     5.13   0.000     .1056946    .2423056
+        x_ue |   .4780594   .0442336    10.81   0.000     .3889684    .5671504
+x_bachdegree |  -.1226188   .0180573    -6.79   0.000    -.1589881   -.0862495
+      x_snap |  -.0623691   .0470003    -1.33   0.191    -.1570325    .0322944
+       _cons |   .1977304   .0069031    28.64   0.000     .1838269    .2116339
+------------------------------------------------------------------------------
+(est4 stored)
+
+. 
+. 
+. esttab using t1ols.csv, b(3) se(3) replace keep(1.expansion) 
+(output written to t1ols.csv)
+
+. esttab using t1olsci.csv, b(3) ci(3) replace keep(1.expansion) 
+(output written to t1olsci.csv)
+
+. esttab using t1olsp.csv, b(3) p(3) replace keep(1.expansion) 
+(output written to t1olsp.csv)
+
+. 
+. estimates clear
+
+. 
+. ***summary stats***
+. 
+. tabstat ya1864_uninsured [fweight = ta1864] if post==0, statistics( mean p50 min p10 p25 p75 p90 max ) by(medicaid) casewise noseparator save
+
+Summary for variables: ya1864_uninsured
+Group variable: medicaid 
+
+medicaid |      Mean       p50       Min       p10       p25       p75       p90       Max
+---------+--------------------------------------------------------------------------------
+       0 |  .2176218  .1970059         0   .062142  .1146194  .2927802  .4015302         1
+       1 |  .1992979   .173206         0  .0629716  .1059322  .2666667  .3734619         1
+---------+--------------------------------------------------------------------------------
+   Total |   .208871  .1850415         0  .0626749   .109905  .2814099  .3889717         1
+------------------------------------------------------------------------------------------
+
+. 
+. ****naieve qr****
+. 
+. set rmsg on
+r; t=0.00 14:01:12
+
+. 
+. eststo: qreg ya1864_uninsured 1.expansion, vce(robust)
+Iteration  1:  WLS sum of weighted deviations =  5903.2363
+
+Iteration  1: sum of abs. weighted deviations =  5903.2209
+Iteration  2: sum of abs. weighted deviations =  5833.7438
+note: alternate solutions exist.
+Iteration  3: sum of abs. weighted deviations =  5799.0194
+
+Median regression                                   Number of obs =    132,063
+  Raw sum of deviations 6226.977 (about .14009662)
+  Min sum of deviations 5799.019                    Pseudo R2     =     0.0687
+
+------------------------------------------------------------------------------
+             |               Robust
+ya1864_uni~d | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ 1.expansion |  -.0877102   .0006558  -133.75   0.000    -.0889955   -.0864249
+       _cons |   .1676206   .0004945   339.00   0.000     .1666515    .1685897
+------------------------------------------------------------------------------
+(est1 stored)
+r; t=1.27 14:01:13
+
+. set rmsg off
+
+. 
+. set rmsg on
+r; t=0.00 14:01:13
+
+. 
+. eststo: bsqreg ya1864_uninsured  1.expansion, quantile (.5) reps (10)
+(fitting base model)
+
+Bootstrap replications (10)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..........
+
+Median regression, bootstrap(10) SEs                Number of obs =    132,063
+  Raw sum of deviations 6226.977 (about .14009662)
+  Min sum of deviations 5799.019                    Pseudo R2     =     0.0687
+
+------------------------------------------------------------------------------
+ya1864_uni~d | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ 1.expansion |  -.0877102   .0008043  -109.05   0.000    -.0892866   -.0861338
+       _cons |   .1676206   .0005351   313.25   0.000     .1665718    .1686694
+------------------------------------------------------------------------------
+(est2 stored)
+r; t=7.93 14:01:21
+
+. set rmsg off
+
+. 
+. set rmsg on
+r; t=0.00 14:01:21
+
+. 
+. eststo: rifhdreg ya1864_uninsured 1.expansion, vce(cluster statefips) rif(q(50))
+
+Linear regression                               Number of obs     =    132,063
+                                                F(1, 45)          =      57.24
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.0999
+                                                Root MSE          =     .14279
+
+                             (Std. err. adjusted for 46 clusters in statefips)
+------------------------------------------------------------------------------
+             |               Robust
+ya1864_uni~d | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ 1.expansion |  -.1102426   .0145714    -7.57   0.000    -.1395909   -.0808943
+       _cons |   .1673727   .0139266    12.02   0.000      .139323    .1954223
+------------------------------------------------------------------------------
+Distributional Statistic: q(50)
+Sample Mean    RIF q(50) :   .1401
+(est3 stored)
+r; t=0.33 14:01:22
+
+. set rmsg off
+
+. 
+. set rmsg on
+r; t=0.00 14:01:22
+
+. 
+. eststo: rqr ya1864_uninsured expansion , quantile(.5) 
+
+
+
+Residualized Quantile Regression                         Number of obs = 132063
+Quantiles:  .5
+------------------------------------------------------------------------------
+ya1864_uni~d | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   expansion |  -.0877119   .0008127  -107.92   0.000    -.0893048    -.086119
+       _cons |   .1459236   .0003507   416.12   0.000     .1452363    .1466109
+------------------------------------------------------------------------------
+Control variables:  
+Algorithm: qreg
+(est4 stored)
+r; t=0.81 14:01:22
+
+. set rmsg off
+
+. 
+. 
+. 
+. esttab using t2naieveqrg.csv b(3) se(3) replace keep(1.expansion)
+invalid 'b' 
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\JSEMPR~1\AppData\Local\Temp\STD3048_000000.tmp"
+
+. 
+. esttab using t2naieveqrg.csv, b(3) se(3) replace keep(1.expansion)
+(file t2naieveqrg.csv not found)
+(output written to t2naieveqrg.csv)
+
+. 
+. ****qr w/ FE***
+. 
+. ****naieve qr****
+. ***qreg and bsqreg not feasile for census FE, computationally inefficient for state FE****
+. set rmsg on
+r; t=0.00 14:03:35
+
+. 
+. eststo: qreg ya1864_uninsured 1.expansion i.post i.statefips, vce(robust)
+Iteration  1:  WLS sum of weighted deviations =  5076.6408
+
+Iteration  1: sum of abs. weighted deviations =  5076.6804
+note: alternate solutions exist.
+Iteration  2: sum of abs. weighted deviations =   5070.763
+Iteration  3: sum of abs. weighted deviations =  5060.8559
+note: alternate solutions exist.
+Iteration  4: sum of abs. weighted deviations =  5050.3571
+Iteration  5: sum of abs. weighted deviations =  5049.1635
+Iteration  6: sum of abs. weighted deviations =  5043.1482
+note: alternate solutions exist.
+Iteration  7: sum of abs. weighted deviations =   5042.171
+Iteration  8: sum of abs. weighted deviations =  5039.4595
+Iteration  9: sum of abs. weighted deviations =   5036.435
+note: alternate solutions exist.
+Iteration 10: sum of abs. weighted deviations =  5035.7315
+Iteration 11: sum of abs. weighted deviations =  5030.9041
+note: alternate solutions exist.
+Iteration 12: sum of abs. weighted deviations =  5030.6265
+note: alternate solutions exist.
+Iteration 13: sum of abs. weighted deviations =   5029.027
+note: alternate solutions exist.
+Iteration 14: sum of abs. weighted deviations =  5027.8726
+note: alternate solutions exist.
+Iteration 15: sum of abs. weighted deviations =  5025.7595
+Iteration 16: sum of abs. weighted deviations =  5024.6067
+note: alternate solutions exist.
+Iteration 17: sum of abs. weighted deviations =  5024.1283
+Iteration 18: sum of abs. weighted deviations =  5023.0597
+note: alternate solutions exist.
+Iteration 19: sum of abs. weighted deviations =  5022.6572
+Iteration 20: sum of abs. weighted deviations =  5021.3572
+Iteration 21: sum of abs. weighted deviations =  5021.1478
+Iteration 22: sum of abs. weighted deviations =  5019.6561
+note: alternate solutions exist.
+Iteration 23: sum of abs. weighted deviations =  5018.8852
+note: alternate solutions exist.
+Iteration 24: sum of abs. weighted deviations =  5018.2947
+Iteration 25: sum of abs. weighted deviations =  5017.6934
+Iteration 26: sum of abs. weighted deviations =  5017.1727
+Iteration 27: sum of abs. weighted deviations =     5017.1
+note: alternate solutions exist.
+Iteration 28: sum of abs. weighted deviations =  5016.7306
+note: alternate solutions exist.
+Iteration 29: sum of abs. weighted deviations =  5016.4024
+Iteration 30: sum of abs. weighted deviations =  5015.6257
+Iteration 31: sum of abs. weighted deviations =  5015.6036
+Iteration 32: sum of abs. weighted deviations =   5015.125
+Iteration 33: sum of abs. weighted deviations =   5014.896
+Iteration 34: sum of abs. weighted deviations =  5013.8661
+note: alternate solutions exist.
+Iteration 35: sum of abs. weighted deviations =  5013.3636
+note: alternate solutions exist.
+Iteration 36: sum of abs. weighted deviations =  5013.3357
+note: alternate solutions exist.
+Iteration 37: sum of abs. weighted deviations =  5013.1196
+Iteration 38: sum of abs. weighted deviations =  5013.1055
+Iteration 39: sum of abs. weighted deviations =  5012.6075
+note: alternate solutions exist.
+Iteration 40: sum of abs. weighted deviations =  5012.5871
+note: alternate solutions exist.
+Iteration 41: sum of abs. weighted deviations =  5012.4266
+Iteration 42: sum of abs. weighted deviations =  5012.1771
+Iteration 43: sum of abs. weighted deviations =  5012.0047
+Iteration 44: sum of abs. weighted deviations =   5011.974
+note: alternate solutions exist.
+Iteration 45: sum of abs. weighted deviations =  5011.9663
+Iteration 46: sum of abs. weighted deviations =  5011.9451
+note: alternate solutions exist.
+Iteration 47: sum of abs. weighted deviations =  5011.9166
+note: alternate solutions exist.
+Iteration 48: sum of abs. weighted deviations =  5011.8973
+Iteration 49: sum of abs. weighted deviations =  5011.8904
+Iteration 50: sum of abs. weighted deviations =  5011.6839
+Iteration 51: sum of abs. weighted deviations =  5011.6633
+note: alternate solutions exist.
+Iteration 52: sum of abs. weighted deviations =  5011.6471
+Iteration 53: sum of abs. weighted deviations =  5011.4503
+Iteration 54: sum of abs. weighted deviations =  5011.4169
+note: alternate solutions exist.
+Iteration 55: sum of abs. weighted deviations =  5011.3244
+Iteration 56: sum of abs. weighted deviations =  5011.3218
+note: alternate solutions exist.
+Iteration 57: sum of abs. weighted deviations =  5011.2657
+note: alternate solutions exist.
+Iteration 58: sum of abs. weighted deviations =  5011.2582
+note: alternate solutions exist.
+Iteration 59: sum of abs. weighted deviations =  5011.2258
+note: alternate solutions exist.
+Iteration 60: sum of abs. weighted deviations =   5011.225
+Iteration 61: sum of abs. weighted deviations =  5011.1904
+Iteration 62: sum of abs. weighted deviations =  5011.1899
+note: alternate solutions exist.
+Iteration 63: sum of abs. weighted deviations =  5011.1775
+note: alternate solutions exist.
+Iteration 64: sum of abs. weighted deviations =  5011.1773
+note: alternate solutions exist.
+Iteration 65: sum of abs. weighted deviations =   5011.165
+Iteration 66: sum of abs. weighted deviations =  5011.1642
+note: alternate solutions exist.
+Iteration 67: sum of abs. weighted deviations =  5011.1631
+note: alternate solutions exist.
+Iteration 68: sum of abs. weighted deviations =  5011.1629
+Iteration 69: sum of abs. weighted deviations =  5011.1623
+note: alternate solutions exist.
+Iteration 70: sum of abs. weighted deviations =   5011.152
+note: alternate solutions exist.
+Iteration 71: sum of abs. weighted deviations =  5011.1511
+note: alternate solutions exist.
+Iteration 72: sum of abs. weighted deviations =  5011.1501
+note: alternate solutions exist.
+Iteration 73: sum of abs. weighted deviations =  5011.1497
+Iteration 74: sum of abs. weighted deviations =  5011.1485
+note: alternate solutions exist.
+Iteration 75: sum of abs. weighted deviations =  5011.1484
+note: alternate solutions exist.
+Iteration 76: sum of abs. weighted deviations =  5011.1483
+Iteration 77: sum of abs. weighted deviations =  5011.1473
+Iteration 78: sum of abs. weighted deviations =  5011.1472
+Iteration 79: sum of abs. weighted deviations =  5011.1471
+note: alternate solutions exist.
+Iteration 80: sum of abs. weighted deviations =  5011.1446
+Iteration 81: sum of abs. weighted deviations =  5011.1442
+note: alternate solutions exist.
+Iteration 82: sum of abs. weighted deviations =  5011.1418
+note: alternate solutions exist.
+Iteration 83: sum of abs. weighted deviations =  5011.1411
+Iteration 84: sum of abs. weighted deviations =  5011.1403
+Iteration 85: sum of abs. weighted deviations =  5011.1402
+Iteration 86: sum of abs. weighted deviations =  5011.1399
+note: alternate solutions exist.
+Iteration 87: sum of abs. weighted deviations =  5011.1391
+note: alternate solutions exist.
+Iteration 88: sum of abs. weighted deviations =  5011.1389
+note: alternate solutions exist.
+Iteration 89: sum of abs. weighted deviations =   5011.138
+note: alternate solutions exist.
+Iteration 90: sum of abs. weighted deviations =  5011.1366
+note: alternate solutions exist.
+Iteration 91: sum of abs. weighted deviations =  5011.1365
+note: alternate solutions exist.
+Iteration 92: sum of abs. weighted deviations =  5011.1362
+Iteration 93: sum of abs. weighted deviations =  5011.1361
+note: alternate solutions exist.
+Iteration 94: sum of abs. weighted deviations =  5011.1359
+Iteration 95: sum of abs. weighted deviations =  5011.1358
+Iteration 96: sum of abs. weighted deviations =  5011.1357
+Iteration 97: sum of abs. weighted deviations =   5011.135
+Iteration 98: sum of abs. weighted deviations =  5011.1349
+Iteration 99: sum of abs. weighted deviations =  5011.1349
+Iteration 100: sum of abs. weighted deviations =  5011.1348
+note: alternate solutions exist.
+Iteration 101: sum of abs. weighted deviations =  5011.1343
+note: alternate solutions exist.
+Iteration 102: sum of abs. weighted deviations =  5011.1342
+note: alternate solutions exist.
+Iteration 103: sum of abs. weighted deviations =  5011.1339
+Iteration 104: sum of abs. weighted deviations =  5011.1339
+note: alternate solutions exist.
+Iteration 105: sum of abs. weighted deviations =  5011.1339
+Iteration 106: sum of abs. weighted deviations =  5011.1339
+note: alternate solutions exist.
+Iteration 107: sum of abs. weighted deviations =  5011.1338
+Iteration 108: sum of abs. weighted deviations =  5011.1337
+Iteration 109: sum of abs. weighted deviations =  5011.1337
+note: alternate solutions exist.
+Iteration 110: sum of abs. weighted deviations =  5011.1337
+note: alternate solutions exist.
+Iteration 111: sum of abs. weighted deviations =  5011.1336
+note: alternate solutions exist.
+Iteration 112: sum of abs. weighted deviations =  5011.1335
+note: alternate solutions exist.
+Iteration 113: sum of abs. weighted deviations =  5011.1335
+note: alternate solutions exist.
+Iteration 114: sum of abs. weighted deviations =  5011.1335
+note: alternate solutions exist.
+Iteration 115: sum of abs. weighted deviations =  5011.1334
+note: alternate solutions exist.
+Iteration 116: sum of abs. weighted deviations =  5011.1334
+note: alternate solutions exist.
+Iteration 117: sum of abs. weighted deviations =  5011.1332
+note: alternate solutions exist.
+Iteration 118: sum of abs. weighted deviations =  5011.1332
+Iteration 119: sum of abs. weighted deviations =  5011.1332
+note: alternate solutions exist.
+Iteration 120: sum of abs. weighted deviations =  5011.1332
+note: alternate solutions exist.
+Iteration 121: sum of abs. weighted deviations =  5011.1331
+note: alternate solutions exist.
+Iteration 122: sum of abs. weighted deviations =   5011.133
+note: alternate solutions exist.
+Iteration 123: sum of abs. weighted deviations =   5011.133
+Iteration 124: sum of abs. weighted deviations =   5011.133
+Iteration 125: sum of abs. weighted deviations =  5011.1329
+Iteration 126: sum of abs. weighted deviations =  5011.1329
+Iteration 127: sum of abs. weighted deviations =  5011.1329
+Iteration 128: sum of abs. weighted deviations =  5011.1329
+Iteration 129: sum of abs. weighted deviations =  5011.1329
+Iteration 130: sum of abs. weighted deviations =  5011.1328
+Iteration 131: sum of abs. weighted deviations =  5011.1328
+Iteration 132: sum of abs. weighted deviations =  5011.1328
+
+Median regression                                   Number of obs =    132,063
+  Raw sum of deviations 6226.977 (about .14009662)
+  Min sum of deviations 5011.133                    Pseudo R2     =     0.1953
+
+------------------------------------------------------------------------------
+             |               Robust
+ya1864_uni~d | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ 1.expansion |    -.03357   .0011834   -28.37   0.000    -.0358894   -.0312506
+      1.post |  -.0601717   .0008204   -73.34   0.000    -.0617797   -.0585638
+             |
+   statefips |
+          4  |  -.0052559   .0031704    -1.66   0.097    -.0114697     .000958
+          5  |   .0127809   .0030382     4.21   0.000     .0068261    .0187356
+          6  |  -.0107544   .0025267    -4.26   0.000    -.0157067    -.005802
+          8  |  -.0298336   .0032389    -9.21   0.000    -.0361818   -.0234854
+          9  |   -.081495   .0029828   -27.32   0.000    -.0873412   -.0756488
+         10  |  -.0796799   .0037868   -21.04   0.000     -.087102   -.0722578
+         11  |  -.1190337   .0029991   -39.69   0.000    -.1249119   -.1131555
+         12  |   .0381708   .0025746    14.83   0.000     .0331246     .043217
+         13  |   .0433696   .0031073    13.96   0.000     .0372794    .0494597
+         15  |  -.0936571   .0032533   -28.79   0.000    -.1000335   -.0872808
+         16  |    .022221   .0043897     5.06   0.000     .0136172    .0308248
+         17  |  -.0416263   .0025971   -16.03   0.000    -.0467166   -.0365359
+         19  |  -.0708894   .0025905   -27.36   0.000    -.0759668    -.065812
+         20  |  -.0413163   .0037403   -11.05   0.000    -.0486473   -.0339854
+         21  |  -.0287958    .002757   -10.44   0.000    -.0341996   -.0233921
+         23  |  -.0472004   .0033522   -14.08   0.000    -.0537706   -.0406301
+         24  |  -.0654003   .0026005   -25.15   0.000    -.0704971   -.0603034
+         25  |  -.1354287   .0022055   -61.40   0.000    -.1397515   -.1311059
+         26  |  -.0424661   .0024677   -17.21   0.000    -.0473026   -.0376295
+         27  |  -.0806524   .0025045   -32.20   0.000    -.0855611   -.0757438
+         28  |   .0475382   .0036736    12.94   0.000     .0403381    .0547383
+         29  |  -.0198945    .003151    -6.31   0.000    -.0260703   -.0137186
+         31  |  -.0600611   .0035367   -16.98   0.000    -.0669929   -.0531293
+         32  |   .0291321   .0051587     5.65   0.000     .0190211    .0392431
+         33  |  -.0451133   .0032364   -13.94   0.000    -.0514567   -.0387699
+         34  |  -.0494313   .0028485   -17.35   0.000    -.0550143   -.0438484
+         35  |   .0110171   .0042563     2.59   0.010     .0026749    .0193593
+         36  |  -.0829259     .00225   -36.86   0.000     -.087336   -.0785159
+         37  |   .0080334   .0028139     2.85   0.004     .0025183    .0135486
+         38  |  -.0631333   .0036295   -17.39   0.000    -.0702471   -.0560196
+         39  |  -.0435451   .0024609   -17.69   0.000    -.0483685   -.0387217
+         40  |   .0344951   .0035868     9.62   0.000      .027465    .0415252
+         41  |  -.0144901   .0031733    -4.57   0.000    -.0207096   -.0082705
+         44  |  -.0728694   .0032493   -22.43   0.000    -.0792381   -.0665008
+         45  |   .0108087   .0031952     3.38   0.001     .0045462    .0170713
+         46  |  -.0669039   .0038256   -17.49   0.000    -.0744019   -.0594058
+         47  |  -.0094121   .0028267    -3.33   0.001    -.0149525   -.0038718
+         48  |    .083948   .0028699    29.25   0.000      .078323    .0895731
+         49  |  -.0415771   .0042508    -9.78   0.000    -.0499085   -.0332456
+         50  |   -.097559    .002229   -43.77   0.000    -.1019278   -.0931901
+         51  |  -.0468686    .002876   -16.30   0.000    -.0525055   -.0412317
+         53  |  -.0380532   .0025851   -14.72   0.000      -.04312   -.0329865
+         54  |  -.0167075   .0033304    -5.02   0.000    -.0232349     -.01018
+         55  |  -.0897512   .0023781   -37.74   0.000    -.0944123   -.0850901
+         56  |  -.0029974   .0070405    -0.43   0.670    -.0167967    .0108018
+             |
+       _cons |   .2107728   .0021528    97.90   0.000     .2065533    .2149924
+------------------------------------------------------------------------------
+(est5 stored)
+r; t=30.44 14:04:05
+
+. set rmsg off
+
+. 
+. set rmsg on
+r; t=0.00 14:04:05
+
+. 
+. eststo: bsqreg ya1864_uninsured  1.expansion i.post i.statefips, quantile (.5) reps (10)
+(fitting base model)
+
+Bootstrap replications (10)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..........
+
+Median regression, bootstrap(10) SEs                Number of obs =    132,063
+  Raw sum of deviations 6226.977 (about .14009662)
+  Min sum of deviations 5011.133                    Pseudo R2     =     0.1953
+
+------------------------------------------------------------------------------
+ya1864_uni~d | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+ 1.expansion |    -.03357   .0013829   -24.28   0.000    -.0362804   -.0308596
+      1.post |  -.0601717   .0011336   -53.08   0.000    -.0623936   -.0579499
+             |
+   statefips |
+          4  |  -.0052559   .0026956    -1.95   0.051    -.0105391    .0000274
+          5  |   .0127809   .0013942     9.17   0.000     .0100484    .0155134
+          6  |  -.0107544   .0010178   -10.57   0.000    -.0127493   -.0087594
+          8  |  -.0298336   .0023188   -12.87   0.000    -.0343784   -.0252888
+          9  |   -.081495   .0018767   -43.42   0.000    -.0851732   -.0778167
+         10  |  -.0796799   .0029064   -27.42   0.000    -.0853763   -.0739834
+         11  |  -.1190337   .0020363   -58.45   0.000    -.1230249   -.1150425
+         12  |   .0381708    .001711    22.31   0.000     .0348174    .0415243
+         13  |   .0433696   .0026423    16.41   0.000     .0381906    .0485485
+         15  |  -.0936571   .0028945   -32.36   0.000    -.0993303    -.087984
+         16  |    .022221   .0043782     5.08   0.000     .0136398    .0308022
+         17  |  -.0416263   .0010695   -38.92   0.000    -.0437224   -.0395301
+         19  |  -.0708894   .0018345   -38.64   0.000     -.074485   -.0672938
+         20  |  -.0413163      .0041   -10.08   0.000    -.0493522   -.0332805
+         21  |  -.0287958    .001752   -16.44   0.000    -.0322297   -.0253619
+         23  |  -.0472004   .0034266   -13.77   0.000    -.0539165   -.0404843
+         24  |  -.0654003   .0019644   -33.29   0.000    -.0692505     -.06155
+         25  |  -.1354287   .0016816   -80.53   0.000    -.1387247   -.1321327
+         26  |  -.0424661    .001511   -28.10   0.000    -.0454276   -.0395045
+         27  |  -.0806524   .0015119   -53.34   0.000    -.0836158   -.0776891
+         28  |   .0475382   .0038578    12.32   0.000      .039977    .0550995
+         29  |  -.0198945   .0019993    -9.95   0.000     -.023813   -.0159759
+         31  |  -.0600611   .0035703   -16.82   0.000    -.0670588   -.0530634
+         32  |   .0291321   .0043294     6.73   0.000     .0206465    .0376177
+         33  |  -.0451133   .0032322   -13.96   0.000    -.0514484   -.0387782
+         34  |  -.0494313   .0017686   -27.95   0.000    -.0528978   -.0459649
+         35  |   .0110171   .0046333     2.38   0.017     .0019359    .0200982
+         36  |  -.0829259   .0017457   -47.50   0.000    -.0863475   -.0795044
+         37  |   .0080334   .0018856     4.26   0.000     .0043378    .0117291
+         38  |  -.0631333   .0034918   -18.08   0.000    -.0699771   -.0562896
+         39  |  -.0435451   .0013457   -32.36   0.000    -.0461826   -.0409077
+         40  |   .0344951   .0027403    12.59   0.000     .0291242     .039866
+         41  |  -.0144901   .0032626    -4.44   0.000    -.0208846   -.0080955
+         44  |  -.0728694   .0026827   -27.16   0.000    -.0781275   -.0676114
+         45  |   .0108087    .003256     3.32   0.001      .004427    .0171904
+         46  |  -.0669039   .0031475   -21.26   0.000     -.073073   -.0607348
+         47  |  -.0094121   .0025129    -3.75   0.000    -.0143373   -.0044869
+         48  |    .083948   .0016985    49.42   0.000     .0806189    .0872771
+         49  |  -.0415771   .0048047    -8.65   0.000    -.0509943   -.0321599
+         50  |   -.097559   .0031279   -31.19   0.000    -.1036895   -.0914284
+         51  |  -.0468686   .0027537   -17.02   0.000    -.0522657   -.0414715
+         53  |  -.0380532   .0015518   -24.52   0.000    -.0410948   -.0350116
+         54  |  -.0167075    .002536    -6.59   0.000     -.021678    -.011737
+         55  |  -.0897512   .0018385   -48.82   0.000    -.0933546   -.0861478
+         56  |  -.0029974   .0065222    -0.46   0.646    -.0157808    .0097859
+             |
+       _cons |   .2107728   .0009722   216.80   0.000     .2088673    .2126783
+------------------------------------------------------------------------------
+(est6 stored)
+r; t=98.84 14:05:44
+
+. set rmsg off
+
+. 
+. set rmsg on
+r; t=0.00 14:05:44
+
+. 
+. eststo: rifhdreg ya1864_uninsured expansion i.post,  rif(q(50)) absorb(geoid)
+
+Linear regression, absorbing indicators         Number of obs     =    132,063
+                                                F(2, 65973)       =   14507.90
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.7676
+                                                Adj R-squared     =     0.5347
+                                                Root MSE          =     .10266
+
+------------------------------------------------------------------------------
+ya1864_uni~d | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   expansion |  -.0603129   .0011305   -53.35   0.000    -.0625287    -.058097
+      1.post |   -.061589   .0007953   -77.44   0.000    -.0631478   -.0600301
+       _cons |   .1858146   .0003996   465.02   0.000     .1850314    .1865978
+------------------------------------------------------------------------------
+Distributional Statistic: q(50)
+Sample Mean    RIF q(50) :   .1401
+(est7 stored)
+r; t=0.32 14:05:44
+
+. set rmsg off
+
+. 
+. set rmsg on
+r; t=0.00 14:05:44
+
+. 
+. eststo: rqr ya1864_uninsured expansion , quantile(.5) absorb(geoid post)
+
+
+
+Residualized Quantile Regression                         Number of obs = 131950
+Quantiles:  .5
+------------------------------------------------------------------------------
+ya1864_uni~d | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   expansion |  -.0587959   .0017828   -32.98   0.000    -.0622901   -.0553016
+       _cons |   .1394099   .0004457   312.81   0.000     .1385364    .1402834
+------------------------------------------------------------------------------
+Control variables:  
+Fixed effects: geoid post (absorbed in first step using reghdfe)
+Algorithm: qreg
+(est8 stored)
+r; t=2.46 14:05:47
+
+. set rmsg off
+
+. 
+. esttab using t3feqrg.csv, b(3) se(3) replace keep(1.expansion)
+(file t3feqrg.csv not found)
+(output written to t3feqrg.csv)
+
+. ****compare OLS & RQR****
+. 
+. eststo: areg ya1864_uninsured 1.post 1.expansion  , vce(cluster statefips) absorb(id)
+
+Linear regression, absorbing indicators            Number of obs     = 132,063
+Absorbed variable: id                              No. of categories =  66,088
+                                                   F(2, 45)          =   72.90
+                                                   Prob > F          =  0.0000
+                                                   R-squared         =  0.8879
+                                                   Adj R-squared     =  0.7756
+                                                   Root MSE          =  0.0587
+
+                             (Std. err. adjusted for 46 clusters in statefips)
+------------------------------------------------------------------------------
+             |               Robust
+ya1864_uni~d | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      1.post |   -.063517    .006496    -9.78   0.000    -.0766006   -.0504334
+ 1.expansion |  -.0373157   .0156439    -2.39   0.021    -.0688242   -.0058071
+       _cons |   .2092421   .0038841    53.87   0.000     .2014192    .2170649
+------------------------------------------------------------------------------
+(est9 stored)
+
+. 
+. set rmsg on
+r; t=0.00 14:05:48
+
+. 
+. eststo: bootstrap, cluster(statefips) reps(1000): rifhdreg ya1864_uninsured expansion i.post,  rif(q(50)) absorb(geoid)
+(running rifhdreg on estimation sample)
+
+Bootstrap replications (1,000)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..................................................   100
+..................................................   150
+..................................................   200
+..................................................   250
+..................................................   300
+..................................................   350
+..................................................   400
+..................................................   450
+..................................................   500
+..................................................   550
+..................................................   600
+..................................................   650
+..................................................   700
+..................................................   750
+..................................................   800
+..................................................   850
+..................................................   900
+..................................................   950
+.................................................. 1,000
+
+Linear regression                                      Number of obs = 132,063
+                                                       Replications  =   1,000
+                                                       Wald chi2(2)  =  246.18
+                                                       Prob > chi2   =  0.0000
+                                                       R-squared     =  0.7676
+                                                       Adj R-squared =  0.5347
+                                                       Root MSE      =  0.1027
+
+                              (Replications based on 46 clusters in statefips)
+------------------------------------------------------------------------------
+             |   Observed   Bootstrap                         Normal-based
+ya1864_uni~d | coefficient  std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   expansion |  -.0603129   .0113116    -5.33   0.000    -.0824832   -.0381426
+      1.post |   -.061589   .0057348   -10.74   0.000    -.0728289   -.0503491
+       _cons |   .1858146   .0129875    14.31   0.000     .1603595    .2112697
+------------------------------------------------------------------------------
+Distributional Statistic: q(50)
+Sample Mean    RIF q(50) :   .1401
+(est10 stored)
+r; t=473.53 14:13:41
+
+. 
+. set rmsg off
+
+. 
+. set rmsg on
+r; t=0.00 14:13:41
+
+. 
+. eststo: bootstrap, cluster(statefips) reps(1000): rqr ya1864_uninsured expansion , quantile(.5) absorb(geoid post)
+(running rqr on estimation sample)
+
+Bootstrap replications (1,000)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..................................................   100
+..................................................   150
+..................................................   200
+..................................................   250
+..................................................   300
+..................................................   350
+..................................................   400
+..................................................   450
+..................................................   500
+..................................................   550
+..................................................   600
+..................................................   650
+..................................................   700
+..................................................   750
+..................................................   800
+..................................................   850
+..................................................   900
+..................................................   950
+.................................................. 1,000
+
+Bootstrap results                                      Number of obs = 132,063
+                                                       Replications  =   1,000
+                                                       Wald chi2(1)  =   27.49
+                                                       Prob > chi2   =  0.0000
+
+                              (Replications based on 46 clusters in statefips)
+------------------------------------------------------------------------------
+             |   Observed   Bootstrap                         Normal-based
+ya1864_uni~d | coefficient  std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   expansion |  -.0587959   .0112136    -5.24   0.000    -.0807741   -.0368176
+       _cons |   .1394099   .0110866    12.57   0.000     .1176806    .1611391
+------------------------------------------------------------------------------
+(est11 stored)
+r; t=1409.21 14:37:10
+
+. 
+. set rmsg off
+
+. 
+. 
+. esttab using t4comparefeqreg.csv, b(3) se(3) replace keep(*expansion*) 
+(file t4comparefeqreg.csv not found)
+(output written to t4comparefeqreg.csv)
+
+. 
+. 
+. ****distribution****
+. 
+. estimates clear
+
+. 
+. set rmsg on
+r; t=0.00 14:37:11
+
+. eststo: bootstrap, cluster(statefips) reps(1000): rqr ya1864_uninsured expansion , quantile(.1(.1).9) absorb(geoid post)
+(running rqr on estimation sample)
+
+Bootstrap replications (1,000)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..................................................   100
+..................................................   150
+..................................................   200
+..................................................   250
+..................................................   300
+..................................................   350
+..................................................   400
+..................................................   450
+..................................................   500
+..................................................   550
+..................................................   600
+..................................................   650
+..................................................   700
+..................................................   750
+..................................................   800
+..................................................   850
+..................................................   900
+..................................................   950
+.................................................. 1,000
+
+Quantile regression                                    Number of obs = 132,063
+                                                       Replications  =   1,000
+                                                       Wald chi2(1)  =    4.33
+                                                       Prob > chi2   =  0.0375
+
+                              (Replications based on 46 clusters in statefips)
+------------------------------------------------------------------------------
+             |   Observed   Bootstrap                         Normal-based
+ya1864_uni~d | coefficient  std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+Q.1          |
+   expansion |  -.0224678   .0108012    -2.08   0.038    -.0436378   -.0012978
+       _cons |   .0385677   .0042923     8.99   0.000     .0301549    .0469806
+-------------+----------------------------------------------------------------
+Q.2          |
+   expansion |  -.0372738   .0129405    -2.88   0.004    -.0626366    -.011911
+       _cons |   .0637198   .0060228    10.58   0.000     .0519153    .0755244
+-------------+----------------------------------------------------------------
+Q.3          |
+   expansion |  -.0487198   .0136668    -3.56   0.000    -.0755062   -.0219333
+       _cons |   .0871043   .0076088    11.45   0.000     .0721913    .1020174
+-------------+----------------------------------------------------------------
+Q.4          |
+   expansion |  -.0578325   .0123411    -4.69   0.000    -.0820207   -.0336443
+       _cons |   .1118939   .0092482    12.10   0.000     .0937677      .13002
+-------------+----------------------------------------------------------------
+Q.5          |
+   expansion |  -.0588039   .0112256    -5.24   0.000    -.0808058   -.0368021
+       _cons |    .139409   .0111296    12.53   0.000     .1175953    .1612227
+-------------+----------------------------------------------------------------
+Q.6          |
+   expansion |  -.0542797   .0131011    -4.14   0.000    -.0799574    -.028602
+       _cons |   .1710819   .0134445    12.73   0.000     .1447311    .1974326
+-------------+----------------------------------------------------------------
+Q.7          |
+   expansion |  -.0432931   .0180604    -2.40   0.017    -.0786908   -.0078955
+       _cons |   .2097886   .0156016    13.45   0.000       .17921    .2403671
+-------------+----------------------------------------------------------------
+Q.8          |
+   expansion |  -.0317287    .027353    -1.16   0.246    -.0853395    .0218821
+       _cons |   .2592982   .0186216    13.92   0.000     .2228005    .2957959
+-------------+----------------------------------------------------------------
+Q.9          |
+   expansion |  -.0231121   .0447958    -0.52   0.606    -.1109103    .0646861
+       _cons |   .3373758   .0240478    14.03   0.000      .290243    .3845085
+------------------------------------------------------------------------------
+(est1 stored)
+r; t=4559.81 15:53:11
+
+. estimates store a1
+r; t=0.01 15:53:11
+
+. rqrplot
+
+
+Plot RQR coefficients
+Outcome: ya1864_uninsured
+Treatment: expansion
+Confidence bands: 95% (normal-approximation bootstrapped CIs)
+
+               b          se          ll          ul
+0.10  -.02246781   .01080123  -.04363782  -.00129779
+0.20  -.03727381   .01294045  -.06263663  -.01191099
+0.30  -.04871976   .01366681  -.07550622   -.0219333
+0.40  -.05783248   .01234114  -.08202066   -.0336443
+0.50  -.05880393   .01122564  -.08080578  -.03680208
+0.60   -.0542797   .01310113  -.07995743  -.02860197
+0.70  -.04329313   .01806036  -.07869079  -.00789547
+0.80  -.03172868   .02735296  -.08533951   .02188214
+0.90  -.02311214   .04479582  -.11091033   .06468607
+r; t=4.39 15:53:15
+
+. 
+. matrix ma=r(plotmat)
+r; t=0.00 15:53:15
+
+. 
+. 
+. graph save f1.base.gph, replace
+(file f1.base.gph not found)
+file f1.base.gph saved
+r; t=0.07 15:53:15
+
+. 
+. set rmsg off
+
+. 
+. esttab using t5_rqr_dist.csv, b(3) se(3) replace keep(*expansion*)
+(tabulating estimates stored by eststo; specify "." to tabulate the active results)
+(file t5_rqr_dist.csv not found)
+(output written to t5_rqr_dist.csv)
+
+. 
+. 
+. ***use matrix to create a better graph****
+. 
+.  foreach r of numlist 1 {
+  2. 
+. frame create b
+  3. frame b{
+  4.         
+.         svmat a`r'
+  5. 
+. 
+. 
+. tw (rarea a`r'4 a`r'5 a`r'1, color(%40)) ///
+> (line a`r'2 a`r'1, lcolor(black) lpattern(dot)) ///
+> ,   xtitle(Uninsurance Quantile) ) scheme(swift_red)  xlabel(.1(.1).9) title("Effect of Medicaid Expansion on Uninsurance Rates")
+  6. 
+. graph save f2q`r'.gph, replace
+  7. }
+  8. frame drop b
+  9. 
+.  }
+matrix a1 not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\JSEMPR~1\AppData\Local\Temp\STD3048_000000.tmp"
+
+. frame drop b
+
+. 
+end of do-file
+
+. do "C:\Users\JSEMPR~1\AppData\Local\Temp\STD3048_000000.tmp"
+
+. 
+. frame create b
+
+. frame b{
+.         
+.         svmat ma
+number of observations will be reset to 9
+Press any key to continue, or Break to abort
+Number of observations (_N) was 0, now 9.
+. 
+. 
+. 
+. tw (rarea ma4 ma5 ma1, color(%40)) ///
+> (line ma2 ma1, lcolor(black) lpattern(dot)) ///
+> ,   xtitle(Uninsurance Quantile) ) scheme(swift_red)  xlabel(.1(.1).9) title("Effect of Medicaid Expansion on Uninsurance Rates")
+option ) not allowed
+r(198);
+. 
+. graph save f2q.gph, replace
+. }
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\JSEMPR~1\AppData\Local\Temp\STD3048_000000.tmp"
+
+. frame create b
+frame b already defined
+r(110);
+
+end of do-file
+
+r(110);
+
+. do "C:\Users\JSEMPR~1\AppData\Local\Temp\STD3048_000000.tmp"
+
+. frame drop b
+
+. 
+end of do-file
+
+. do "C:\Users\JSEMPR~1\AppData\Local\Temp\STD3048_000000.tmp"
+
+. 
+. frame create b
+
+. frame b{
+.         
+.         svmat ma
+number of observations will be reset to 9
+Press any key to continue, or Break to abort
+Number of observations (_N) was 0, now 9.
+. 
+. 
+. 
+. tw (rarea ma4 ma5 ma1, color(%40)) ///
+> (line ma2 ma1, lcolor(black) lpattern(dot)) ///
+> ,   xtitle(Uninsurance Quantile)  scheme(swift_red)  xlabel(.1(.1).9) title("Effect of Medicaid Expansion on Uninsurance Rates")
+. 
+. graph save f2q.gph, replace
+(file f2q.gph not found)
+file f2q.gph saved
+. }
+
+. frame drop b
+
+. 
+.  
+. 
+end of do-file
+
+. do "C:\Users\JSEMPR~1\AppData\Local\Temp\STD3048_000000.tmp"
+
+. 
+. frame create b
+
+. frame b{
+.         
+.         svmat ma
+number of observations will be reset to 9
+Press any key to continue, or Break to abort
+Number of observations (_N) was 0, now 9.
+. 
+. 
+. 
+. tw (rarea ma4 ma5 ma1, color(%40)) ///
+> (line ma2 ma1, lcolor(black) lpattern(dot)) ///
+> ,   xtitle(Uninsurance Quantile)  scheme(swift_red)  xlabel(.1(.1).9) title("Effect of Medicaid Expansion on Uninsurance Rates") xline(0)
+(note:  named style medthin not found in class linestyle, default attributes used)
+. 
+. graph save f2q.gph, replace
+file f2q.gph saved
+. }
+
+. frame drop b
+
+. 
+end of do-file
+
+. do "C:\Users\JSEMPR~1\AppData\Local\Temp\STD3048_000000.tmp"
+
+. 
+. frame create b
+
+. frame b{
+.         
+.         svmat ma
+number of observations will be reset to 9
+Press any key to continue, or Break to abort
+Number of observations (_N) was 0, now 9.
+. 
+. 
+. 
+. tw (rarea ma4 ma5 ma1, color(%40)) ///
+> (line ma2 ma1, lcolor(black) lpattern(dot)) ///
+> ,   xtitle(Uninsurance Quantile)  scheme(swift_red)  xlabel(.1(.1).9) title("Effect of Medicaid Expansion on Uninsurance Rates") yline(0)
+(note:  named style medthin not found in class linestyle, default attributes used)
+. 
+. graph save f2q.gph, replace
+file f2q.gph saved
+. }
+
+. frame drop b
+
+. 
+.  
+. 
+end of do-file
+
+. do "C:\Users\JSEMPR~1\AppData\Local\Temp\STD3048_000000.tmp"
+
+. frame create b
+
+. frame b{
+.         
+.         svmat ma
+number of observations will be reset to 9
+Press any key to continue, or Break to abort
+Number of observations (_N) was 0, now 9.
+. 
+. 
+. 
+. tw (line ma2 ma1, lcolor(black) lpattern(dot)) ///
+> (rarea ma4 ma5 ma1, color(%40)) ///
+> , ytitle(QTE)  xtitle(Uninsurance Quantile)  scheme(swift_red)  xlabel(.1(.1).9) title("Effect of Medicaid Expansion on Uninsurance Rates") yline(0)
+(note:  named style medthin not found in class linestyle, default attributes used)
+. 
+. graph save f2q.gph, replace
+file f2q.gph saved
+. }
+
+. frame drop b
+
+. 
+end of do-file
+
+. graph save "Graph" "C:\Users\jsemprini\OneDrive - University of Iowa\4-Misc Projects\f2_final.gph"
+file C:\Users\jsemprini\OneDrive - University of Iowa\4-Misc Projects\f2_final.gph saved
+graph export "C:\Users\jsemprini\OneDrive - University of Iowa\4-Misc Projects\f2_final.png", as(png) name("Graph")
+file C:\Users\jsemprini\OneDrive - University of Iowa\4-Misc Projects\f2_final.png saved as PNG format
+do "C:\Users\JSEMPR~1\AppData\Local\Temp\STD3048_000000.tmp"
+
+. 
+. 
+. estimates clear
+
+. ***test function***
+. 
+. areg expansion i.post, absorb(id) vce(cluster statefips)
+
+Linear regression, absorbing indicators            Number of obs     = 133,478
+Absorbed variable: id                              No. of categories =  66,741
+                                                   F(1, 45)          =   10.29
+                                                   Prob > F          =  0.0025
+                                                   R-squared         =  0.6642
+                                                   Adj R-squared     =  0.3283
+                                                   Root MSE          =  0.3535
+
+                             (Std. err. adjusted for 46 clusters in statefips)
+------------------------------------------------------------------------------
+             |               Robust
+   expansion | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      1.post |   .4943285   .1540834     3.21   0.002     .1839886    .8046684
+       _cons |  -.0000148    .077044    -0.00   1.000    -.1551894    .1551598
+------------------------------------------------------------------------------
+
+. predict resid, r
+(12,628 missing values generated)
+
+. 
+. eststo: reg ya1864_uninsured resid i.post, vce(cluster statefips)
+
+Linear regression                               Number of obs     =    132,063
+                                                F(2, 45)          =     145.11
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.1154
+                                                Root MSE          =     .11646
+
+                             (Std. err. adjusted for 46 clusters in statefips)
+------------------------------------------------------------------------------
+             |               Robust
+ya1864_uni~d | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       resid |  -.0372439   .0110607    -3.37   0.002    -.0595213   -.0149666
+      1.post |  -.0820115   .0054894   -14.94   0.000    -.0930676   -.0709554
+       _cons |   .2092574   .0131848    15.87   0.000     .1827019    .2358129
+------------------------------------------------------------------------------
+(est1 stored)
+
+. eststo: areg ya1864_uninsured expansion i.post, vce(cluster statefips) absorb(id)
+
+Linear regression, absorbing indicators            Number of obs     = 132,063
+Absorbed variable: id                              No. of categories =  66,088
+                                                   F(2, 45)          =   72.90
+                                                   Prob > F          =  0.0000
+                                                   R-squared         =  0.8879
+                                                   Adj R-squared     =  0.7756
+                                                   Root MSE          =  0.0587
+
+                             (Std. err. adjusted for 46 clusters in statefips)
+------------------------------------------------------------------------------
+             |               Robust
+ya1864_uni~d | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   expansion |  -.0373157   .0156439    -2.39   0.021    -.0688242   -.0058071
+      1.post |   -.063517    .006496    -9.78   0.000    -.0766006   -.0504334
+       _cons |   .2092421   .0038841    53.87   0.000     .2014192    .2170649
+------------------------------------------------------------------------------
+(est2 stored)
+
+. 
+. eststo: rqr ya1864_uninsured resid
+
+
+
+Residualized Quantile Regression                         Number of obs = 132063
+Quantiles:  .50
+------------------------------------------------------------------------------
+ya1864_uni~d | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       resid |   -.059045   .0017772   -33.22   0.000    -.0625282   -.0555618
+       _cons |   .1393512   .0004443   313.67   0.000     .1384805     .140222
+------------------------------------------------------------------------------
+Control variables:  
+Algorithm: qreg
+(est3 stored)
+
+. 
+. eststo: rqr ya1864_uninsured expansion , quantile(.5) absorb(geoid post)
+
+
+
+Residualized Quantile Regression                         Number of obs = 131950
+Quantiles:  .5
+------------------------------------------------------------------------------
+ya1864_uni~d | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   expansion |  -.0587959   .0017828   -32.98   0.000    -.0622901   -.0553016
+       _cons |   .1394099   .0004457   312.81   0.000     .1385364    .1402834
+------------------------------------------------------------------------------
+Control variables:  
+Fixed effects: geoid post (absorbed in first step using reghdfe)
+Algorithm: qreg
+(est4 stored)
+
+. 
+. esttab using t6_testfunc.csv, b(3) se(3) replace
+(output written to t6_testfunc.csv)
+
+. 
+. 
+end of do-file
+
+. exit, clear
