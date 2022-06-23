@@ -1,8 +1,6 @@
 clear all 
 
-use "C:\Users\jsemprini\OneDrive - University of Iowa\4-Misc Projects\semprini_methods_data.dta"
-
-cd "C:\Users\jsemprini\OneDrive - University of Iowa\4-Misc Projects"
+****USE ACS 2009-2013 & 2015-2019 Uninsurance Rate Data****
 
 
 
