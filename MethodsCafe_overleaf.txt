@@ -1,0 +1,719 @@
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND THEMES
+%----------------------------------------------------------------------------------------
+\documentclass[aspectratio=169,xcolor=dvipsnames]{beamer}
+\usetheme{Simple}
+\setbeamertemplate{footline}{%
+  \raisebox{5pt}{\makebox[\paperwidth]{\hfill\makebox[10pt]{\scriptsize\insertframenumber}}}}
+  \usepackage{hyperref}
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+\usepackage[utf8]{inputenc}
+ \usepackage[utf8]{inputenc}
+\usepackage{subfig}
+\usepackage[legalpaper, landscape, margin=2in]{geometry}
+\usepackage{mathtools}
+\usepackage{pdfpages}
+\usepackage{csvsimple}
+\usepackage{blindtext}
+\usepackage{multicol}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    }
+
+\urlstyle{same}
+\usepackage{booktabs}
+\usepackage{graphicx}
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+% The title
+\title[short title]{Estimating Quantile Treatment Effects}
+\subtitle{A primer on the theory, math, and application of Residualized Quantile Regression models w/ Two-Way Fixed Effects}
+
+\author[Jason] {Jason Semprini}
+\institute[University of Iowa] % Your institution may be shorthand to save space
+{
+    % Your institution for the title page
+    University of Iowa, College of Public Health \\
+       Department of Health Management and Policy 
+
+}
+\date{June 24, 2022}
+
+  %  \begin{figure}
+ %   \includegraphics[width=0.4\linewidth]{ashecon.png}
+ %   \end{figure}
+
+
+
+%----------------------------------------------------------------------------------------
+%	PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\begin{frame}
+    % Print the title page as the first slide
+    \titlepage
+\end{frame}
+
+
+\begin{frame}{Acknowledgements}
+Thanks to Dr. Leanne Powner and University of Illinois Chicago Committee for Social Science Research. 
+
+\end{frame}
+
+\begin{frame}{POP QUIZ!}
+\begin{itemize}
+    \item Raise your "hand" if you have used Linear Regression models with Two-Way Fixed Effects or Difference-in-Differences designs
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{POP QUIZ!}
+\begin{itemize}
+    \item Raise your "hand" if you have used Quantile Regression models 
+\end{itemize}
+\end{frame}
+
+\begin{frame}{POP QUIZ!}
+\begin{itemize}
+    \item Raise your "hand" if you have \alert{tried} to use Quantile Regression models to estimate a treatment effect
+\end{itemize}
+\end{frame}
+
+%------------Motivation------------
+
+\begin{frame}{Motivation}
+
+OLS is a powerful tool for estimating means and linear predictions
+\begin{center}
+\includegraphics[scale=.4]{ols.drawio (1).png}
+\end{center}    
+\end{frame}
+
+\begin{frame}{Motivation}
+\begin{itemize}
+    \item Under certain assumptions, OLS can yield Average Treatment Effect estimates of a program, policy, event, or characteristic.
+\vspace{.5in}
+    \item The key assumption here is exogeneity, or that the unobserved error term is not correlated with your treatment variable. 
+   \end{itemize}
+   
+   \[E(e | X) = 0 \]
+   \[E(Xe) = 0 \]
+
+\end{frame}
+
+\begin{frame}{Motivation}
+\begin{itemize}
+    \item Fixed Effects designs are a common approach for achieving, or at least justifying, the exogeneity assumption. 
+        \[Y = Bo + B1X + a + e \]
+
+    \vspace{.25in}
+    \item Examples of "a":
+        \begin{itemize}
+            \item Time, to adjust for overall trends
+            \item Region, to adjust for time-invariant characteristics (ideology, governance)
+            \item Person, to adjust for unobserved individual traits which are not expected to change over time (i.e., attitudes, values). 
+        \end{itemize}
+\end{itemize}
+    \vspace{.25in}
+
+\end{frame}
+
+\begin{frame}{Motivation}
+\begin{itemize}
+    \item Fixed Effects designs are a common approach for achieving, or at least justifying, the exogeneity assumption. 
+        \[Y = Bo + B1X + a + e \]
+
+    \vspace{.25in}
+    \item Examples of "a":
+        \begin{itemize}
+            \item Time, to adjust for overall trends
+            \item Region, to adjust for time-invariant characteristics (ideology, governance)
+            \item Person, to adjust for unobserved individual traits which are not expected to change over time (i.e., attitudes, values). 
+        \end{itemize}
+\end{itemize}
+    \vspace{.25in}
+\begin{center}
+  If \(E(e | X, a) = 0 \), then B1 is an unbiased estimate of the \alert{Average Treatment Effect of X on Y.} 
+\end{center}    
+\end{frame}
+
+\begin{frame}{Motivation}
+\begin{center}
+\textbf{What if we don't care about Means or Average Treatment Effects?}
+\end{center}
+
+\begin{itemize}
+    \item What if you had a representative sample of voters, what's more important: The Mean or the Median? 
+    \vspace{.25in}
+    
+    \item What if your outcome variable is highly skewed (ex: Wealth), and you want to know how an event impacted the tails of Y's distribution?
+    
+    \vspace{.25in}
+    
+    \item What if you are focused solely on inequality and want to see how a policy or program reshapes the entire distribution of Y? 
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Motivation}
+\begin{center}
+\textbf{What if we don't care about Means or Average Treatment Effects?}
+\end{center}
+
+\begin{itemize}
+    \item What if you had a representative sample of voters, what's more important: The Mean or the Median? 
+    \vspace{.25in}
+    
+    \item What if your outcome variable is highly skewed (ex: Wealth), and you want to know how an event impacted the tails of Y's distribution?
+    
+    \vspace{.25in}
+    
+    \item What if you are focused solely on inequality and want to see how a policy or program reshapes the entire distribution of Y? 
+\end{itemize}
+
+\vspace{.25in}
+
+\begin{center}
+\textbf{Quantile Regression Models can estimate Quantile Treatment Effects!}
+\end{center}
+\end{frame}
+
+\begin{frame}{Motivation}
+\begin{center}
+\textbf{What if we don't care about Means or Average Treatment Effects?}
+\end{center}
+
+\begin{itemize}
+    \item What if you had a representative sample of voters, what's more important: The Mean or the Median? 
+    \vspace{.25in}
+    
+    \item What if your outcome variable is highly skewed (ex: Wealth), and you want to know how an event impacted the tails of Y's distribution?
+    
+    \vspace{.25in}
+    
+    \item What if you are focused solely on inequality and want to see how a policy or program reshapes the entire distribution of Y? 
+\end{itemize}
+
+\vspace{.25in}
+
+\begin{center}
+\textbf{Quantile Regression Models can estimate Quantile Treatment Effects...}
+
+\alert{under certain econometric and design assumptions}
+\end{center}
+\end{frame}
+
+%-----Concept-------
+
+\begin{frame}{Quantile Regression: The Concept}
+
+\begin{itemize}
+    \item Two groups: Treated, Controls
+    \item Sort your treated data \(Y^t_1, Y^t_2, Y^t_3,...,Y^t_N\)
+    \item Find \(Y^t_q\), where 50\% of data are below and 50\% of data are above \(Y^t_q\). 
+    \item Sort your control data \(Y^c_1, Y^c_2, Y^c_3,...,Y^c_N\)
+    \item Find \(Y^c_q\), where 50\% of data are below and 50\% of data are above \(Y^c_q\). 
+    \item \(QTE_{median}\)  = \(Y^t_q - Y^c_c\)
+\end{itemize}
+    
+\end{frame}
+
+\begin{frame}{Quantile Regression: The Concept}
+    
+\begin{itemize}
+    \item Two groups: Treated, Controls
+    \item Sort your treated data \(Y^t_1, Y^t_2, Y^t_3,...,Y^t_N\)
+    \item Find \(Y^t_q\), where \alert{95\%} of data are below and \alert{5\%} of data are above \(Y^t_q\). 
+    \item Sort your control data \(Y^c_1, Y^c_2, Y^c_3,...,Y^c_N\)
+    \item Find \(Y^c_q\), where \alert{95\%}of data are below and \alert{5\%} of data are above \(Y^c_q\). 
+    \item \(QTE_{95}\) = \(Y^t_q - Y^c_c\)
+\end{itemize}
+    
+\end{frame}
+
+
+%-------Basics---------
+
+
+\begin{frame}{Linear \& Quantile Regression: The Model}
+\[ Y = XB + e\]
+
+    
+\end{frame}
+
+\begin{frame}{Linear \& Quantile Regression: The Minimization Function}
+\[ Y = XB + e\]
+
+
+\begin{multicols}{2}
+
+\begin{center}
+
+\textbf{Linear}
+
+ \(\sum (Y - XB)^2 \)
+\columnbreak
+
+\textbf{Quantile (\emph{Median})}
+
+ \(\sum |Y - XB| \)
+
+\end{center}
+
+\end{multicols}
+
+    
+\end{frame}
+
+\begin{frame}{Linear \& Quantile Regression: The Minimization Function}
+\[ Y = XB + e\]
+
+
+\begin{multicols}{2}
+
+\begin{center}
+
+\textbf{Linear}
+
+ \(\sum (Y - XB)^2 \)
+\columnbreak
+
+\textbf{Quantile (\emph{any quantile})}
+
+\[q\sum_{y_i >= Q}^{n} |Y - XB^q|\] +
+\[(1-q)\sum_{y_i < Q}^{n} |Y - XB^q| \]
+
+\end{center}
+
+\end{multicols}
+
+    
+\end{frame}
+
+\begin{frame}{Linear \& Quantile Regression: The Coefficient}
+
+\begin{multicols}{2}
+
+\begin{center}
+
+\textbf{Linear}
+
+\[ Y = XB\]
+
+
+\(B = \frac{Cov(X,Y)}{Cov(X,X)}\)
+  
+
+
+\columnbreak
+
+\textbf{Conditional Quantile Regression}
+\[Q^q(y | X) = XB^q\]
+
+
+\(B^q= \frac{Cov(X,Q^q(Y|X))}{Cov(X,X)}\)
+
+\end{center}
+
+\end{multicols}
+
+    
+\end{frame}
+
+\begin{frame}{Linear \& Quantile Regression: The Coefficient}
+
+\begin{multicols}{2}
+
+\begin{center}
+
+\textbf{Linear}
+\[ Y = XB\]
+
+  \(B = \frac{Cov(X,Y)}{Cov(X,X)}\)
+  
+  \vspace{.1in}
+  
+  \emph{Average association between 1 unit change in Y and 1 unit change in X}
+
+\columnbreak
+
+\textbf{Conditional Quantile Regression}
+
+\[Q^q(y | X) = XB^q\]
+
+  \(B^q= \frac{Cov(X,Q^q(Y|X))}{Cov(X,X)}\)
+
+
+\vspace{.1in}
+
+  \emph{Association between 1 unit change in \(Q^q\)\((Y|X)\) and 1 unit change in X} 
+
+
+\end{center}
+
+\end{multicols}
+
+    
+\end{frame}
+
+
+\begin{frame}{Linear \& Quantile Regression: The Coefficient}
+
+\begin{multicols}{2}
+
+\begin{center}
+
+\textbf{Linear}
+\[ Y = XB + a\]
+
+  \(B = \frac{Cov(X,Y)}{Cov(X,X)}\)
+  
+  
+  \vspace{.1in}
+  
+  \emph{Average association between 1 unit change in Y and 1 unit change in X, independent of association between a and Y}
+
+\columnbreak
+
+\textbf{Conditional Quantile Regression}
+
+\[Q^q(y | X) = XB^q + a\]
+
+  \(B^q= \frac{Cov(X,Q^q(Y|X))}{Cov(X,X)}\)
+
+
+\vspace{.1in}
+
+  \emph{Association between 1 unit change in \(Q^q\)\((Y|X)\) and 1 unit change in X, \alert{at specified levels of a}}
+
+
+\end{center}
+
+\end{multicols}
+
+    
+\end{frame}
+
+\begin{frame}{Problems with Conditional Quantile Regression}
+    \begin{itemize}
+        \item Interpreting coefficients w/ covariates
+        \item Incidental Parameter Problem
+        \item Computational Inefficiency
+        \begin{itemize}
+            \item Exacerbated by bootstrapping to estimate accurate standard errors
+        \end{itemize}
+        \item \alert{cannot estimate QTE of X on Q(Y)}, but on \(Q(Y | X)\)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Unconditional Quantile Regression Approaches}
+    \begin{itemize}
+        \item Propensity Score (Fipro 2007)
+            \begin{itemize}
+                \item \alert{Cannot account for unobservable factors influencing X and e}
+            \end{itemize}
+        \item Re-Centered Influence Function (Fipro 2009; Rios-Avila 2020)
+            \begin{itemize}
+                \begin{enumerate}
+                    \item Re-Center IF: \(E(RIF(y, v(F_y))=XB\)
+                    \item OLS on RIF to estimate \(\hat{B} = \frac{dRIF}{dX} \)
+                \end{enumerate}
+            \end{itemize}
+            \item More common in statistics
+            \item Less intuitive interpretation
+            \item Computational inefficiency w/ High Dimensional covariates
+            \item UQR estimates partial population effects, not within-group QTEs
+            \item \alert{biased if fixed-effects are associated with large differences in (counter factual) distribution}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Residualized Quantile Regression}
+
+\textbf{Goal: Estimate QTEs in presence of unobserved confounding}
+
+Where, \(Y = XB + a + e\), and \(E(e|X, a) = 0\)
+    
+\end{frame}
+
+\begin{frame}{Residualized Quantile Regression}
+
+\textbf{Goal: Estimate QTEs in presence of unobserved confounding}
+
+Where, \(Y = XB + a + e\), and \(E(e|X, a) = 0\)
+
+\begin{itemize}
+    \item Recall...
+\[Y = XB + a\] via OLS will yield the same B estimate as estimating \[X = \delta a \] to obtain residuals (e) and then estimate \[Y = eB\]
+
+\end{itemize}
+    
+\end{frame}
+
+\begin{frame}{Residualized Quantile Regression (RQR), Borgen 2021}
+
+\textbf{Goal: Estimate QTEs in presence of unobserved confounding}
+
+The Residualized Quantile Regression extends this approach to estimate QTEs by removing confounding from the treatment variable in step 1 and estimating the QTE on the treatment residuals in step 2. 
+
+\begin{itemize}
+    \item Step 1: Remove confounding from X and estimate residual
+\[X = \delta a \] 
+\[\hat{e} = X - \delta a\]
+
+\item Step 2: Estimate QTE
+\[Y = \hat{e}B^q\]
+
+
+
+\end{itemize}
+    
+\end{frame}
+
+\begin{frame}{Benefits of RQR}
+    \begin{itemize}
+        \item Intuitive Interpretation
+        \item Computationally efficient
+        \item Efficient estimation w/ High-Dimensional covariates
+        \item \alert{Unbiased QTE if correct specification in first step}
+    \end{itemize}
+\end{frame}
+
+%-------Application----------
+
+\begin{frame}{Application}
+    \textbf{Research Question:} How did Medicaid Expansion impact uninsurance rates?
+    
+    \vspace{.1in}
+    
+    \textbf{Data:} American Community-Survey Five-Year Estimates, 2009-2013 and 2015-2019
+        \vspace{.1in}
+
+    \begin{itemize}
+        \item Census-Tract Level Uninsurance Rate data
+        \item State and Census-Tract identifiers
+        \item Total 2010 census-tract population and time-variant X' (unemployment rate, poverty rate, \% w/ bachelor's degree, \% SNAP recipients)
+    \end{itemize}
+
+        \vspace{.1in}
+
+    \textbf{Model:} \(Y_{it} = EXPAND_{it}B + POST_t + CENSUSTRACT_i + X_{it}' + e_{it}\)
+\end{frame}
+
+\begin{frame}{Average Treatment Effect of Medicaid Expansion on Uninsurance Rates}
+
+
+\begin{table}[ht]
+\centering
+\caption{ATE Estimates}
+\label{tab:my-table}
+{%
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+     & \textbf{(1)} & \textbf{(2)} & \textbf{(3)} & \textbf{(4)} \\ \midrule
+           & \textbf{OLS}         & \textbf{TWFE}        & \textbf{Weighted TWFE} & \textbf{\begin{tabular}[c]{@{}c@{}}Weighted TWFE, \\ w/ Controls\end{tabular}} \\
+ATE  & -0.091***    & -0.037*      & -0.036**     & -0.033**     \\
+(se) & (0.014)      & (0.016)      & (0.013)      & (0.011)      \\
+{[}C.I.{]} & {[}-0.120, -0.063{]} & {[}-0.069, -0.006{]} & {[}-0.062, -0.010{]}   & {[}-0.056, -0.011{]}                                                           \\ \bottomrule
+\end{tabular}%
+}
+\end{table}
+\begin{center}
+\emph{Robust standard errors clustered at state level}
+\end{center}
+\[* p < 0.05, ** p <0.01, *** p < 0.001\]
+    
+\end{frame}
+
+\begin{frame}{Weighted Distribution of Uninsurance Rates (2009-2013) }
+
+\begin{table}[ht]
+\centering
+\caption{Mean, Median, and 5, 25, 75, 95 Quantile Uninsurance Rates}
+\label{tab:my-table}
+{%
+\begin{tabular}{@{}llllllll@{}}
+\toprule
+ & \textbf{Mean} & \textbf{} & \textbf{q10} & \textbf{q25} & \textbf{q50} & \textbf{q75} & \textbf{q90} \\ \midrule
+Non-Expansion & .218 &  & .062 & .115 & .197 & .293 & .402 \\
+              &      &  &      &      &      &      &      \\
+Expansion     & .199 &  & .063 & .106 & .173 & .267 & .373 \\ \bottomrule
+\end{tabular}%
+}
+\end{table}
+    
+\end{frame}
+
+\begin{frame}{Quantile Treatment Effects of Medicaid Expansion on Uninsurance Rates}
+
+\begin{table}[ht]
+\centering
+\caption{QTE Estimates}
+\label{tab:my-table}
+{%
+\begin{tabular}{@{}ccll@{}}
+\toprule
+\multicolumn{1}{l}{} &
+  \textbf{(1)} &
+  \multicolumn{1}{c}{\textbf{(2)}} &
+  \multicolumn{1}{c}{\textbf{(3)}} \\ \midrule
+\multicolumn{1}{l}{} &
+  \textbf{CQR} &
+  \multicolumn{1}{c}{\textbf{RIF}} &
+  \multicolumn{1}{c}{\textbf{RQR}} \\
+Naieve &
+  \multicolumn{1}{l}{-0.088***} &
+  -0.110*** &
+  -0.088*** \\
+ &
+  \multicolumn{1}{l}{(0.001)} &
+  (0.015) &
+  (0.001) \\
+TWFE &
+  \multirow{}{}{\textit{\begin{tabular}[c]{@{}c@{}}Not \\ Feasible\end{tabular}}} &
+  -0.060*** &
+  -0.059*** \\
+ &
+   &
+  (0.001) &
+  (0.002) \\
+\begin{tabular}[c]{@{}c@{}}Bootstrap \\ TWFE\end{tabular} & \multirow{}{}{\textit{\begin{tabular}[c]{@{}c@{}}Not \\ Feasible\end{tabular}}} & -0.060*** & -0.059*** \\
+\multicolumn{1}{l}{} &
+   &
+  (0.011) &
+  (0.011) \\ \bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\emph{Robust Standard Errors Clustered at State Level.} \(* p < 0.05, ** p < 0.01, *** p < 0.001\)
+    
+\end{frame}
+
+\begin{frame}{Residuzlied Quantile Regression QTEs Across Distribution}
+
+\begin{table}[ht]
+\centering
+\caption{Cluster Robust, Bootstrap RQR w/ TWFE QTE Estimates}
+\label{tab:my-table}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llllllllllllllllllll@{}}
+\toprule
+                                  &  & \multicolumn{18}{c}{\textbf{Quantile}}                                                                                      \\ \midrule
+ &
+   &
+  \textbf{10th} &
+  \textbf{} &
+  \textbf{20th} &
+  \textbf{} &
+  \textbf{30th} &
+  \textbf{} &
+  \textbf{40th} &
+  \textbf{} &
+  \textbf{Median} &
+  \textbf{} &
+  \textbf{60th} &
+  \textbf{} &
+  \textbf{70th} &
+  \textbf{} &
+  \textbf{80th} &
+  \textbf{} &
+  \textbf{90th} &
+  \textbf{} \\
+\multicolumn{1}{c}{\textit{QTE}}  &  & -0.022* &  & -0.037** &  & -0.049*** &  & -0.058*** &  & -0.059*** &  & -0.054*** &  & -0.043* &  & -0.032  &  & -0.023  &  \\
+\multicolumn{1}{c}{\textit{(se)}} &  & (0.011) &  & (0.013)  &  & (0.014)   &  & (0.012)   &  & (0.011)   &  & (0.013)   &  & (0.018) &  & (0.027) &  & (0.045) &  \\ \bottomrule
+\end{tabular}%
+}
+\end{table}
+\emph{Robust Standard Errors Clustered at State Level.} \(* p < 0.05, ** p < 0.01, *** p < 0.001\)
+\end{frame}
+
+\begin{frame}{Visualizing the QTE Across the Distribution}
+  
+  \begin{center}
+    \includegraphics[scale=.24]{2-final_update.png}
+
+\end{center}
+
+\end{frame}
+
+\begin{frame}{Conclusion}
+\begin{itemize}
+    \item OLS is powerful, but requires econometric and design assumptions to estimate ATEs
+    \item The same holds for Quantile Regression models aiming to estimate QTEs
+    \item The "new" Residualized Quantile Regression is an intuititive, simple, and efficient model for estimating QTEs 
+    \item RQR can incorporate multi-way Fixed-Effects, Control Variables, Weighting, and Clustered Robust (bootstrap) standard errors
+    \item You can use RQR to estimate how a treatment variable is associated with changes to the median, quantile, iqr, skewness, gini, etc...
+\end{itemize}
+
+\end{frame}
+
+%-----------End----------
+\begin{frame}{Further Reading}
+
+\scriptsize
+\begin{itemize}
+    \item \textbf{RQR}
+    
+Borgen, Nicolai T. & Haupt, Andreas & Wiborg, Øyvind N., 2021. "A New Framework for Estimation of Unconditional Quantile Treatment Effects: The Residualized Quantile Regression (RQR) Model," SocArXiv 42gcb, Center for Open Science. \href{https://ideas.repec.org/p/osf/socarx/42gcb.html}{https://ideas.repec.org/p/osf/socarx/42gcb.html}
+
+Borgen, Nicolai T., Andreas Haupt, and Øyvind N. Wiborg. 2020. “Quantile Regression Estimands and Models: Revisiting the Motherhood Wage Penalty Debate.” SocArXiv. December 2. \href{https://osf.io/preprints/socarxiv/9avrp/}{doi:10.31235/osf.io/9avrp}
+
+\item \textbf{Other Quantile Regression}
+
+Koenker, Roger, and Kevin F. Hallock. 2001. "Quantile Regression." Journal of Economic Perspectives, 15 (4): \href{https://www.aeaweb.org/articles?id=10.1257/jep.15.4.143}{https://www.aeaweb.org/articles?id=10.1257/jep.15.4.143}
+
+
+Firpo, S., Fortin, N.M. and Lemieux, T. (2009), Unconditional Quantile Regressions. Econometrica, 77: 953-973. \href{https://doi.org/10.3982/ECTA6822}{https://doi.org/10.3982/ECTA6822}
+
+\item \textbf{STATA}
+
+Borgen, Nicolai T., Andreas Haupt, and Øyvind N. Wiborg. 2021. “Flexible and Fast Estimation of Quantile Treatment Effects: The Rqr and Rqrplot Commands.” SocArXiv. October 5. \href{https://osf.io/preprints/socarxiv/4vquh/}{doi:10.31235/osf.io/4vquh}
+
+
+Borgen, Nicolai T., Haupt, Andreas and Wiborg, Øyvind, (2022), RQR: Stata module to estimate the residualized quantile regression model, \href{https://EconPapers.repec.org/RePEc:boc:bocode:s458999}{https://EconPapers.repec.org/RePEc:boc:bocode:s458999}
+
+
+Borgen, Nicolai T. “Fixed Effects in Unconditional Quantile Regression.” The Stata Journal 16, no. 2 (June 2016): 403–15. \href{https://doi.org/10.1177/1536867X1601600208}{https://doi.org/10.1177/1536867X1601600208}
+
+
+Rios-Avila, Fernando. “Recentered Influence Functions (RIFs) in Stata: RIF Regression and RIF Decomposition.” The Stata Journal 20, no. 1 (March 2020): 51–94. \href{https://doi.org/10.1177/1536867X20909690}{https://doi.org/10.1177/1536867X20909690}
+
+
+
+
+
+
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Contact}
+
+\huge
+
+\begin{center}
+
+jason-semprini$@$uiowa.edu
+
+Twitter: \href{https://twitter.com/SempriniJason/}{@SempriniJason}
+
+GitHub Repo: \href{https://github.com/jsemprini/methodscafe_rqr}{jsemprini/methodscafe\_rqr}
+
+\end{center}
+
+\end{frame}
+
+
+%----------------------------------------------------------END
+
+\end{document}
